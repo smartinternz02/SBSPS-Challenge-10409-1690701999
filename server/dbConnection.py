@@ -6,8 +6,9 @@ api = Api(app)
 
 # Establish a connection to the DB2 database
 # SECURITY=SSL;SSLCertificate=DigiCertGlobalRootCA.crt;
-conn = ibm_db.connect('DATABASE=bludb; HOSTNAME=fbd88901-ebdb-4a4f-a32e-9822b9fb237b.c1ogj3sd0tgtu0lqde00.databases.appdomain.cloud; PORT=32731; UID=mkz61721; PWD=4foCRQCQKktx2Gy7; Security=SSL; SSLCertificate=DigiCertGlobalRootCA.crt','','')
-# print(conn)
+
+
+conn = ibm_db.connect('DATABASE=DB_NAME; HOSTNAME=HOST_NAME; PORT=PORT_NO; UID=USER_ID; PWD=PASSWORD','','')
 connState = ibm_db.active(conn)
 print (connState)
 
