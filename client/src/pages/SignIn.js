@@ -12,6 +12,8 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { Alert, AlertTitle } from '@mui/material';
+
 
 // function Copyright(props) {
 //   return (
@@ -31,13 +33,48 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 const defaultTheme = createTheme();
 
 export default function SignIn() {
+
+  const [username, setUsername] = React.useState('');
+  const [password, setPassword] = React.useState('');
+
+  // const handleSubmit = (event) => {
+  //   event.preventDefault();
+  //   const data = new FormData(event.currentTarget);
+  //   console.log({
+  //     email: data.get('email'),
+  //     password: data.get('password'),
+  //   });
+  // };
+
+  const onSuccess = (msg) =>{
+    <Alert severity='success'>
+          <AlertTitle>Login</AlertTitle>
+          {msg}
+        </Alert>
+    window.location='/';
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    };
+    fetch('/login', requestOptions)
+      .then((response) => response.json())
+      .then((data) => {
+        onSuccess(data.message)
+        console.log(data.message);
+      })
+      .catch((error) => {
+        
+        <Alert severity='error'>
+          <AlertTitle>Error</AlertTitle>
+          {error}
+        </Alert>
+        console.error('Error:', error);
+      });
   };
 
   return (
@@ -58,6 +95,7 @@ export default function SignIn() {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
+          
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
@@ -68,6 +106,7 @@ export default function SignIn() {
               name="email"
               autoComplete="email"
               autoFocus
+              onChange={(e) => setUsername(e.target.value)}
             />
             <TextField
               margin="normal"
@@ -78,12 +117,14 @@ export default function SignIn() {
               type="password"
               id="password"
               autoComplete="current-password"
+              onChange={(e) => setPassword(e.target.value)}
             />
             <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
               label="Remember me"
             />
             <Button
+            // onClick={handleSubmit}
               type="submit"
               fullWidth
               variant="contained"

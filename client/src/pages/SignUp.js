@@ -12,6 +12,8 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+// import { useScrollTrigger } from '@mui/material';
+
 
 // function Copyright(props) {
 //   return (
@@ -31,14 +33,41 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 const defaultTheme = createTheme();
 
 export default function SignUp() {
+
+  const [username, setUsername] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [firstname, setFisrtname] = React.useState('');
+  const [lastname, setLastname] = React.useState('');
+
+  
+
+  // const handleSubmit = (event) => {
+  //   event.preventDefault();
+  //   const data = new FormData(event.currentTarget);
+  //   console.log({
+  //     email: data.get('email'),
+  //     password: data.get('password'),
+  //   });
+  // };
+
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
+    const requestOptions = {
+      method : 'POST',
+      headers : {'Content-Type':'application/json'},
+      body : JSON.stringify({firstname, lastname, username, password}),
+    };
+    fetch('/register',requestOptions)
+    .then((response)=>response.json())
+    .then((data)=>{
+      console.log(data.message);
+    })
+    .catch((error)=>{
+      console.error('Error',error);
     });
   };
+
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -69,6 +98,7 @@ export default function SignUp() {
                   id="firstName"
                   label="First Name"
                   autoFocus
+                  onChange={(e) => setFisrtname(e.target.value)}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -79,16 +109,18 @@ export default function SignUp() {
                   label="Last Name"
                   name="lastName"
                   autoComplete="family-name"
+                  onChange={(e) => setLastname(e.target.value)}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   required
                   fullWidth
-                  id="email"
+                  id="username"
                   label="Email Address"
-                  name="email"
+                  name="username"
                   autoComplete="email"
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -100,6 +132,7 @@ export default function SignUp() {
                   type="password"
                   id="password"
                   autoComplete="new-password"
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -110,6 +143,7 @@ export default function SignUp() {
               </Grid>
             </Grid>
             <Button
+            // onClick={handleSubmit}
               type="submit"
               fullWidth
               variant="contained"
