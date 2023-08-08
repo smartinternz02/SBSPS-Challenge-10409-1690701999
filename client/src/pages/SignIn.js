@@ -46,13 +46,13 @@ export default function SignIn() {
   //   });
   // };
 
-  const onSuccess = (msg) =>{
-    <Alert severity='success'>
-          <AlertTitle>Login</AlertTitle>
-          {msg}
-        </Alert>
-    window.location='/';
-  }
+  // const onSuccess = (msg) =>{
+  //   <Alert severity='success'>
+  //         <AlertTitle>Login</AlertTitle>
+  //         {msg}
+  //       </Alert>
+  //   window.location='/';
+  // }
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -64,7 +64,7 @@ export default function SignIn() {
     fetch('/login', requestOptions)
       .then((response) => response.json())
       .then((data) => {
-        onSuccess(data.message)
+        console.log(data);
         console.log(data.message);
       })
       .catch((error) => {

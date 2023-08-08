@@ -1,0 +1,4 @@
+.env
+DigiCertGlobalRootCA.crt
+server.py
+dbConnection.py
