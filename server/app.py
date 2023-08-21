@@ -71,7 +71,7 @@ class Login(Resource):
         if not user_exist(username):
             return {"message": "User not found"}, 404
         
-        sql = f"SELECT password FROM users WHERE username = '{username}'"
+        sql = f"SELECT * FROM users WHERE username = '{username}'"
         stmt = ibm_db.exec_immediate(conn,sql)
         result = ibm_db.fetch_assoc(stmt)
 
@@ -82,7 +82,8 @@ class Login(Resource):
 
         if bcrypt2.check_password_hash(result['PASSWORD'], password):
         # if result['PASSWORD'] == password:
-            return {"message":"Login Successfull"},200
+            return result,200
+            # return {"message":"Login Successfull"},200
         else :
             return {"message": "Invalid Credentials"},401
         
@@ -95,8 +96,8 @@ OPENCHARGEMAP_API_KEY = os.getenv("OPENCHARGEMAP_API_KEY")
 OPENCHARGEMAP_API_BASE_URL = 'https://api.openchargemap.io/v3/poi/'
 
 
-def fetch_charging_stations(latitude, longitude, max_results=100):
-    url = f"{OPENCHARGEMAP_API_BASE_URL}?latitude={latitude}&longitude={longitude}&distance=20&maxresults={max_results}&compact=true&verbose=false&key={OPENCHARGEMAP_API_KEY}"
+def fetch_charging_stations(latitude, longitude, max_results=10000):
+    url = f"{OPENCHARGEMAP_API_BASE_URL}?latitude={latitude}&longitude={longitude}&distance=2000&maxresults={max_results}&compact=true&verbose=false&key={OPENCHARGEMAP_API_KEY}"
     response= requests.get(url)
     return response.json()
 

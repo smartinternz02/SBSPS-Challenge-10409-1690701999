@@ -2,6 +2,7 @@ import React,{ useEffect, useState} from 'react';
 import axios from 'axios';
 import {MapContainer, TileLayer, Marker, Popup} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+// import DetailedView from './components/DetailedView';
 import L from 'leaflet'
 
 const FLASK_BACKEND_URL = 'http://localhost:5000';
@@ -58,6 +59,7 @@ function HomePage() {
                     <p>{selectedStation.AddressInfo.AddressLine1}</p>
                     </div>
                 </Popup>
+                // <DetailedView selectedStation={selectedStation} onClose={() => setSelectedStation(null)} />
                 
             )}
         </MapContainer>

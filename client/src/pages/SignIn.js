@@ -69,10 +69,6 @@ export default function SignIn() {
       })
       .catch((error) => {
         
-        <Alert severity='error'>
-          <AlertTitle>Error</AlertTitle>
-          {error}
-        </Alert>
         console.error('Error:', error);
       });
   };
