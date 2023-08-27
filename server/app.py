@@ -1,20 +1,20 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_restful import Api, Resource, reqparse
 import requests
 import os 
 import ibm_db
 import bcrypt
-from flask_bcrypt import Bcrypt
+# from flask_bcrypt import Bcrypt
 from dotenv import load_dotenv
 from flask_cors import CORS
 
 app=Flask(__name__)
 CORS(app)
 api = Api(app)
-bcrypt2 = Bcrypt(app)
+# bcrypt2 = Bcrypt(app)
 
 # Establish a connection to the DB2 database
-conn = ibm_db.connect('DATABASE=DATABASE_NAME; HOSTNAME=HOSTNAME; PORT=PORT_NUMBER; UID=USERNAME; PWD=PASSWORD; Security=SSL; SSLCertificate=DigiCertGlobalRootCA.crt','','')
+conn = ibm_db.connect('DATABASE=bludb; HOSTNAME=fbd88901-ebdb-4a4f-a32e-9822b9fb237b.c1ogj3sd0tgtu0lqde00.databases.appdomain.cloud; PORT=32731; UID=mkz61721; PWD=4foCRQCQKktx2Gy7; Security=SSL; SSLCertificate=DigiCertGlobalRootCA.crt','','')
 connState = ibm_db.active(conn)
 print (connState)
 
@@ -27,76 +27,58 @@ def user_exist(username):
     return result['1']
 
 #Resource for user registration
-class Registration(Resource):
-    def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('firstname', type=str, required=True, help="First name is required")
-        parser.add_argument("lastname",type=str,required=True,help="Last name is required")
-        parser.add_argument('username', type=str, required=True, help="Username is required")
-        parser.add_argument("password",type=str,required=True,help="Password is required")
-        args = parser.parse_args()
+@app.route('/register', methods=['POST'])
+def registration():
+    data = request.json  # Get the JSON data from the request body
+    firstname = data.get('firstname')
+    lastname = data.get('lastname')
+    username = data.get('username')
+    password = data.get('password')
 
-        
+    # Check if the user already exists
+    if user_exist(username):
+        return jsonify({"message": "User already exists"}), 400
 
-        firstname = args['firstname']
-        lastname = args['lastname']
-        username = args['username']
-        password = args['password']
-        
-        hashed_password = (bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt()))
-        string_password = hashed_password.decode('utf8')      
-        print(string_password)
-
-
-        if user_exist(username):
-            return {"message": "User already exists"}, 400
-        
-        sql = f"INSERT INTO users (firstname, lastname, username, password) VALUES ('{firstname}','{lastname}','{username}','{string_password}')"
-        stmt = ibm_db.exec_immediate(conn,sql)
-
-        return {"message": "User registered successfully"}, 201
+    # Hash the password using bcrypt
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    string_password = hashed_password.decode('utf8')
     
+    # Insert user data into the database
+    sql = f"INSERT INTO users (firstname, lastname, username, password) VALUES ('{firstname}','{lastname}','{username}','{string_password}')"
+    stmt = ibm_db.exec_immediate(conn, sql)
+
+    return jsonify({"message": "User registered successfully"}), 201
+
+
 
 # Resource for login authentication and retrieving data from db using SQL query
-class Login(Resource):
-    def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('username', type=str, required=True, help="Username is required")
-        parser.add_argument("password",type=str,required=True,help="Password is required")
-        args = parser.parse_args()
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json  # Get the JSON data from the request body
+    username = data.get('username')
+    password = data.get('password')
+    
+    # Use your own function to check if the user exists in the database
+    if not user_exist(username):
+        return jsonify({"message": "User not found"}), 404
 
-        username = args['username']
-        password = args['password']
+    # Replace this SQL query with your actual SQL query to retrieve user data
+    sql = f"SELECT * FROM users WHERE username = '{username}'"
+    stmt = ibm_db.exec_immediate(conn, sql)
+    result = ibm_db.fetch_assoc(stmt)
 
-        if not user_exist(username):
-            return {"message": "User not found"}, 404
-        
-        sql = f"SELECT * FROM users WHERE username = '{username}'"
-        stmt = ibm_db.exec_immediate(conn,sql)
-        result = ibm_db.fetch_assoc(stmt)
-
-        print(password.encode('utf8'))
-        print(result['PASSWORD'].encode('utf8'))
-        print(bcrypt2.check_password_hash(result['PASSWORD'], password))
-        # print(bcrypt.checkpw(password.encode('utf8'), result['PASSWORD'].encode('utf8')))
-
-        if bcrypt2.check_password_hash(result['PASSWORD'], password):
-        # if result['PASSWORD'] == password:
-            return result,200
-            # return {"message":"Login Successfull"},200
-        else :
-            return {"message": "Invalid Credentials"},401
-        
-# Add resources to the API with corresponding routes
-api.add_resource(Registration,'/register') # Register route
-api.add_resource(Login,'/login')         # Login Route
+    # Check the password using bcrypt
+    if bcrypt.checkpw(password.encode('utf8'), result['PASSWORD'].encode('utf8')):
+        return jsonify(result), 200
+    else:
+        return jsonify({"message": "Invalid Credentials"}), 401
 
 
 OPENCHARGEMAP_API_KEY = os.getenv("OPENCHARGEMAP_API_KEY")
 OPENCHARGEMAP_API_BASE_URL = 'https://api.openchargemap.io/v3/poi/'
 
 
-def fetch_charging_stations(latitude, longitude, max_results=10000):
+def fetch_charging_stations(latitude, longitude, max_results=100):
     url = f"{OPENCHARGEMAP_API_BASE_URL}?latitude={latitude}&longitude={longitude}&distance=2000&maxresults={max_results}&compact=true&verbose=false&key={OPENCHARGEMAP_API_KEY}"
     response= requests.get(url)
     return response.json()
