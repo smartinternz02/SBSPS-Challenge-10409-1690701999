@@ -33,7 +33,7 @@ function ResponsiveAppBar({ isLoggedIn }) {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" color=''>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
@@ -119,7 +119,7 @@ function ResponsiveAppBar({ isLoggedIn }) {
                   <Button
                     key={page}
                     onClick={handleCloseNavMenu}
-                    sx={{ my: 2, color: 'white', display: 'block' }}
+                    sx={{ my: 2, color: 'black', display: 'block' }}
                   >
                     {page}
                   </Button>
@@ -133,7 +133,8 @@ function ResponsiveAppBar({ isLoggedIn }) {
                       key={setting.label}
                       component={Link}
                       to={setting.route}
-                      sx={{ my: 2, color: 'white', display: 'block', marginLeft: 1 }}
+                      variant='outlined'
+                      sx={{ my: 2, color: 'inherit', display: 'block', marginLeft: 1 }}
                     >
                       {setting.label}
                     </Button>
@@ -150,7 +151,7 @@ function ResponsiveAppBar({ isLoggedIn }) {
               <React.Fragment>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                <Avatar alt="Aman" src="/static/images/avatar/2.jpg" />
               </IconButton>
             </Tooltip>
             <Menu

@@ -14,6 +14,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import axios from 'axios';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import ResponsiveAppBar from './components/ResponsiveAppBar';
 
 
 const Alert = React.forwardRef(function Alert(props, ref) {
@@ -92,6 +93,7 @@ export default function SignUp() {
 
   return (
     <ThemeProvider theme={defaultTheme}>
+      <ResponsiveAppBar isLoggedIn={false}/>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <Box
