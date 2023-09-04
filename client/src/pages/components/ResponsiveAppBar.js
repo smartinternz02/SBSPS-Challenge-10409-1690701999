@@ -12,7 +12,6 @@ const beforeLoginSettings = [
 ];
 const afterLoginSettings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
-
 function ResponsiveAppBar({ isLoggedIn }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -34,7 +33,7 @@ function ResponsiveAppBar({ isLoggedIn }) {
 
   return (
     <AppBar position="static" color=''>
-      <Container maxWidth="xl">
+      <Container maxWidth={false}>
         <Toolbar disableGutters>
           <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
           <Typography
@@ -91,8 +90,7 @@ function ResponsiveAppBar({ isLoggedIn }) {
               ))}
             </Menu>
           </Box>
-          
-          
+
           <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
           <Typography
             variant="h5"
@@ -113,9 +111,9 @@ function ResponsiveAppBar({ isLoggedIn }) {
             PLUG & POWER
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-          {isLoggedIn ? ( // Render appropriate buttons based on login status
+            {isLoggedIn ? ( // Render appropriate buttons based on login status
               <React.Fragment>
-            {pages.map((page) => (
+                {pages.map((page) => (
                   <Button
                     key={page}
                     onClick={handleCloseNavMenu}
@@ -140,53 +138,47 @@ function ResponsiveAppBar({ isLoggedIn }) {
                     </Button>
                   ))}
                 </Box>
-            </React.Fragment>
-          )}
+              </React.Fragment>
+            )}
           </Box>
-
-          
 
           <Box sx={{ flexGrow: 0 }}>
-          {isLoggedIn ? (// Render user menu based on login status
+            {isLoggedIn ? ( // Render user menu based on login status
               <React.Fragment>
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Aman" src="/static/images/avatar/2.jpg" />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: '45px' }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {/* {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography textAlign="center">{setting}</Typography> */}
-                   {afterLoginSettings.map((setting) => (
+                <Tooltip title="Open settings">
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                    <Avatar alt="Aman" src="/static/images/avatar/2.jpg" />
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id="menu-appbar"
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                >
+                  {afterLoginSettings.map((setting) => (
                     <MenuItem key={setting} onClick={handleCloseUserMenu}>
                       <Typography textAlign="center">{setting}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
-            </React.Fragment>
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </React.Fragment>
             ) : null}
           </Box>
-
-          
         </Toolbar>
       </Container>
     </AppBar>
   );
 }
+
 export default ResponsiveAppBar;

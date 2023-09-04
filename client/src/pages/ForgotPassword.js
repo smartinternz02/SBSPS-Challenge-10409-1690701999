@@ -1,17 +1,8 @@
 import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Link from '@mui/material/Link';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
+import { Avatar, Button, CssBaseline, TextField, FormControlLabel,Checkbox, Link, Grid, Box, Container, Typography } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import ResponsiveAppBar from './components/ResponsiveAppBar'
 
 const defaultTheme=createTheme();
 
@@ -25,6 +16,7 @@ export default function ForgotPassword() {
     };
     return (
         <ThemeProvider theme={defaultTheme}>
+          <ResponsiveAppBar/>
         <Container component="main" maxWidth='xs' >
         <CssBaseline/>
         <Box 
@@ -77,3 +69,71 @@ export default function ForgotPassword() {
         </ThemeProvider>
     );
 }
+
+// import React, { Component } from 'react';
+// import { TextField, Button } from '@mui/material';
+
+// class ForgotPassword extends Component {
+//   constructor(props) {
+//     super(props);
+//     this.state = {
+//       email: '',
+//       step: 1, // Step 1: Requesting OTP, Step 2: Verifying OTP
+//       otp: '', // To store the entered OTP
+//     };
+//   }
+
+//   // Your existing code for handling email submission
+
+//   sendOTP = () => {
+//     // Generate and send OTP to the user's email or phone
+//     // Update the state accordingly
+//     this.setState({ step: 2 });
+//   };
+
+//   verifyOTP = () => {
+//     // Verify the entered OTP
+//     // If OTP is correct, proceed with password reset
+//     // If OTP is incorrect, display an error message
+//   };
+
+//   render() {
+//     return (
+//       <div>
+//         {this.state.step === 1 ? (
+//           // Step 1: Requesting OTP
+//           <div>
+//             <h2>Forgot Password</h2>
+//             <p>Enter your email to reset your password.</p>
+//             <TextField
+//               label="Email"
+//               variant="outlined"
+//               value={this.state.email}
+//               onChange={(e) => this.setState({ email: e.target.value })}
+//             />
+//             <Button variant="contained" color="primary" onClick={this.sendOTP}>
+//               Submit
+//             </Button>
+//           </div>
+//         ) : (
+//           // Step 2: Verifying OTP
+//           <div>
+//             <h2>OTP Verification</h2>
+//             <p>Enter the OTP sent to your email/phone:</p>
+//             <TextField
+//               label="Enter OTP"
+//               variant="outlined"
+//               value={this.state.otp}
+//               onChange={(e) => this.setState({ otp: e.target.value })}
+//             />
+//             <Button variant="contained" color="primary" onClick={this.verifyOTP}>
+//               Verify OTP
+//             </Button>
+//           </div>
+//         )}
+//       </div>
+//     );
+//   }
+// }
+
+// export default ForgotPassword;

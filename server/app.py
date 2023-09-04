@@ -85,15 +85,28 @@ def fetch_and_update_data():
     # Fetch data from the OpenChargeMap referencedata endpoint
     referencedata_url = f'https://api.openchargemap.io/v3/referencedata?key={OPENCHARGEMAP_API_KEY}'
     referencedata_response = requests.get(referencedata_url)
-    referencedata = referencedata_response.json()
-    # print(referencedata)
+    # referencedata = referencedata_response.json()
+    try:
+    # Attempt to parse the response as JSON
+        referencedata = referencedata_response.json()
+        # print(referencedata)
+    except json.JSONDecodeError as e:
+    # Handle the JSON decoding error
+        print(f"Error decoding JSON: {e}")
+        referencedata = None  # Set referencedata to None or another appropriate value
 
-    # Check if ChargerTypes table exists, create if not
+
+
+# Check if ChargerTypes table exists, create if not
+    print("\nChecking ChargerTypes table exists or not....")
     charger_types_table_check_sql = "SELECT COUNT(*) FROM sysibm.systables WHERE name = 'CHARGERTYPES'"
     stmt = ibm_db.exec_immediate(conn, charger_types_table_check_sql)
     result = ibm_db.fetch_assoc(stmt)
     charger_types_table_exists = result['1'] > 0
-    # print(charger_types_table_exists)
+    if(charger_types_table_exists):
+        print("\nCharger types table exists.")
+    else:
+        print("\nCharger types table does not exists. Creating Charger types table in DB...")
 
     if not charger_types_table_exists:
         # Create ChargerTypes table if it doesn't exist
@@ -107,11 +120,16 @@ def fetch_and_update_data():
         """
         ibm_db.exec_immediate(conn, charger_types_table_create_sql)
 
-    # Check if ConnectionTypes table exists, create if not
+# Check if ConnectionTypes table exists, create if not
+        print("\nChecking ConnectionTypes table exists or not....")
     connection_types_table_check_sql = "SELECT COUNT(*) FROM sysibm.systables WHERE name = 'CONNECTIONTYPES'"
     stmt = ibm_db.exec_immediate(conn, connection_types_table_check_sql)
     result = ibm_db.fetch_assoc(stmt)
     connection_types_table_exists = result['1'] > 0
+    if(connection_types_table_exists):
+        print("\nConnectionTypes table exists.")
+    else:
+        print("\nConnectionTypes table does not exists. Creating ConnectionTypes table in DB...")
 
     if not connection_types_table_exists:
         # Create ConnectionTypes table if it doesn't exist
@@ -126,7 +144,57 @@ def fetch_and_update_data():
         """
         ibm_db.exec_immediate(conn, connection_types_table_create_sql)
 
+# Check if UsageTypes table exists, create if not
+    print("\nChecking UsageTypes table exists or not....")
+    usage_types_table_check_sql = "SELECT COUNT(*) FROM sysibm.systables WHERE name = 'USAGETYPES'"
+    stmt = ibm_db.exec_immediate(conn, usage_types_table_check_sql)
+    result = ibm_db.fetch_assoc(stmt)
+    usage_types_table_exists = result['1'] > 0
+    if(usage_types_table_exists):
+        print("\nUsageTypes table exists.")
+    else:
+        print("\nUsageTypes table does not exists. Creating UsageTypes table in DB...")
+
+    if not usage_types_table_exists:
+        # Create UsageTypes table if it doesn't exist
+        usage_types_table_create_sql = """
+        CREATE TABLE UsageTypes (
+            ID INT PRIMARY KEY NOT NULL,
+            IsPayAtLocation BOOLEAN,
+            IsMembershipRequired BOOLEAN,
+            IsAccessKeyRequired BOOLEAN,
+            Title VARCHAR(255)
+        )
+        """
+        ibm_db.exec_immediate(conn, usage_types_table_create_sql)
+
+    # Check if the Countries table exists
+    print("\nChecking Countries table exists or not....")
+    countries_table_check_sql = "SELECT COUNT(*) FROM sysibm.systables WHERE name = 'COUNTRIES'"
+    stmt = ibm_db.exec_immediate(conn, countries_table_check_sql)
+    result = ibm_db.fetch_assoc(stmt)
+    countries_table_exists = result['1'] > 0
+    if(countries_table_exists):
+        print("\nCountries table exists.")
+    else:
+        print("\nCountries table does not exists. Creating Countries table in DB...")
+
+    if not countries_table_exists:
+        # Create the Countries table if it doesn't exist
+        countries_table_create_sql = """
+        CREATE TABLE Countries (
+            ID INT PRIMARY KEY NOT NULL,
+            ISOCode VARCHAR(255) ,
+            ContinentCode VARCHAR(255) ,
+            Title VARCHAR(255)
+        )
+        """
+        ibm_db.exec_immediate(conn, countries_table_create_sql)
+
+
+
     # Insert or update data in ChargerTypes table
+    print("\nUpdating data in ChargerTypes table")
     for charger_type in referencedata['ChargerTypes']:
         charger_type_id = charger_type['ID']
         charger_type_insert_update_sql = f"""
@@ -144,6 +212,7 @@ def fetch_and_update_data():
         ibm_db.exec_immediate(conn, charger_type_insert_update_sql)
 
 # Insert or update data in ConnectionTypes table
+    print("\nUpdating data in ConnectionTypes table")
     for connection_type in referencedata['ConnectionTypes']:
         connection_type_id = connection_type['ID']
         
@@ -182,7 +251,121 @@ def fetch_and_update_data():
         ibm_db.exec_immediate(conn, connection_type_insert_update_sql)
 
 
+    
 
+
+# Insert or update data in UsageTypes
+    print('\nUpdating data in UsageTypes')
+    for usage_type_data in referencedata['UsageTypes']:
+        usage_type_id = usage_type_data['ID']
+        
+        # Handle potential None values for other fields
+        is_pay_at_location = usage_type_data.get("IsPayAtLocation", False)  # Provide False as a default value
+        is_membership_required = usage_type_data.get("IsMembershipRequired", False)  # Provide False as a default value
+        is_access_key_required = usage_type_data.get("IsAccessKeyRequired", False)  # Provide False as a default value
+        title = usage_type_data.get("Title", "")  # Provide an empty string as a default value
+        
+        # Convert boolean values to integers (0 or 1) to match DB2 BOOLEAN data type
+        is_pay_at_location = int(is_pay_at_location) if is_pay_at_location is not None else 0
+        is_membership_required = int(is_membership_required) if is_membership_required is not None else 0
+        is_access_key_required = int(is_access_key_required) if is_access_key_required is not None else 0
+        
+        usage_types_table_insert_update_sql = f"""
+        MERGE INTO UsageTypes AS target
+        USING (
+            SELECT
+                {usage_type_id} AS ID,
+                {is_pay_at_location} AS IsPayAtLocation,
+                {is_membership_required} AS IsMembershipRequired,
+                {is_access_key_required} AS IsAccessKeyRequired,
+                '{title}' AS Title
+            FROM sysibm.sysdummy1
+        ) AS source
+        ON target.ID = source.ID
+        WHEN MATCHED THEN
+            UPDATE SET
+                IsPayAtLocation = source.IsPayAtLocation,
+                IsMembershipRequired = source.IsMembershipRequired,
+                IsAccessKeyRequired = source.IsAccessKeyRequired,
+                Title = source.Title
+        WHEN NOT MATCHED THEN
+            INSERT (ID, IsPayAtLocation, IsMembershipRequired, IsAccessKeyRequired, Title)
+            VALUES (source.ID, source.IsPayAtLocation, source.IsMembershipRequired, source.IsAccessKeyRequired, source.Title)
+        """
+        ibm_db.exec_immediate(conn, usage_types_table_insert_update_sql)
+
+
+
+
+# # Insert or update data in the Countries table
+#     for country_data in referencedata['Countries']:
+#         country_id = country_data['ID']
+#         iso_code = country_data['ISOCode']
+#         continent_code = country_data['ContinentCode']
+#         title = country_data['Title']
+
+#         # Use parameterized SQL query to avoid SQL injection
+#         countries_table_insert_update_sql = """
+#         MERGE INTO Countries AS target
+#         USING (
+#             SELECT ? AS ID, ? AS ISOCode, ? AS ContinentCode, ? AS Title FROM sysibm.sysdummy1
+#         ) AS source
+#         ON target.ID = source.ID
+#         WHEN MATCHED THEN
+#             UPDATE SET
+#                 ISOCode = source.ISOCode,
+#                 ContinentCode = source.ContinentCode,
+#                 Title = source.Title
+#         WHEN NOT MATCHED THEN
+#             INSERT (ID, ISOCode, ContinentCode, Title)
+#             VALUES (source.ID, source.ISOCode, source.ContinentCode, source.Title)
+#         """
+        
+        # # Define the parameter values as a tuple
+        # params = (country_id, iso_code, continent_code, title)
+
+        # # Execute the SQL query with parameters
+        # ibm_db.exec_immediate(conn, countries_table_insert_update_sql, params)
+
+
+
+            # Insert or update data in the Countries table for each country
+    print("\nUpdating data in Countries")
+    for country_data in referencedata['Countries']:
+        country_id = country_data['ID']
+        iso_code = country_data['ISOCode']
+        continent_code = country_data['ContinentCode']
+        title = country_data.get('Title', '')  # Use an empty string as a default value if 'Title' is not present
+
+                # Prepare the SQL statement with placeholders for parameters
+        countries_table_insert_update_sql = """
+        MERGE INTO Countries AS target
+        USING (
+            SELECT ? AS ID, ? AS ISOCode, ? AS ContinentCode, ? AS Title FROM sysibm.sysdummy1
+        ) AS source
+        ON target.ID = source.ID
+        WHEN MATCHED THEN
+            UPDATE SET
+                ISOCode = source.ISOCode,
+                ContinentCode = source.ContinentCode,
+                Title = source.Title
+        WHEN NOT MATCHED THEN
+            INSERT (ID, ISOCode, ContinentCode, Title)
+            VALUES (source.ID, source.ISOCode, source.ContinentCode, source.Title)
+        """
+
+        # Prepare the statement
+        stmt = ibm_db.prepare(conn, countries_table_insert_update_sql)
+
+        # Bind the parameter values to the prepared statement
+        ibm_db.bind_param(stmt, 1, country_id)
+        ibm_db.bind_param(stmt, 2, iso_code)
+        ibm_db.bind_param(stmt, 3, continent_code)
+        ibm_db.bind_param(stmt, 4, title)
+
+        # Execute the prepared statement
+        ibm_db.execute(stmt)
+    print("\n All data is updated")
 
 # Add a route to trigger data fetching and updating
 @app.route('/fetch-and-update-data', methods=['GET'])
@@ -204,9 +387,55 @@ def charging_stations():
     charging_stations_data = fetch_charging_stations(latitude,longitude)
     return jsonify(charging_stations_data)
 
+
+@app.route('/countries', methods=['GET'])
+def get_countries_data():
+    try:
+        sql_countries = f"SELECT * FROM countries"
+        stmt_countries = ibm_db.exec_immediate(conn, sql_countries)
+        
+        countries_data = []
+        while ibm_db.fetch_row(stmt_countries):
+            row = ibm_db.fetch_assoc(stmt_countries)
+            countries_data.append(row)
+
+        return jsonify(countries_data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/usage-types', methods=['GET'])
+def get_usage_types_data():
+    try:
+        sql_usage_types = f"SELECT * FROM usagetypes"
+        stmt_usage_types = ibm_db.exec_immediate(conn, sql_usage_types)
+        
+        usage_types_data = []
+        while ibm_db.fetch_row(stmt_usage_types):
+            row = ibm_db.fetch_assoc(stmt_usage_types)
+            usage_types_data.append(row)
+
+        return jsonify(usage_types_data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/connection-types', methods=['GET'])
+def get_connection_types_data():
+    try:
+        sql_connection_types = "SELECT * FROM connectiontypes"
+        stmt_connection_types = ibm_db.exec_immediate(conn, sql_connection_types)
+        
+        connection_types_data = []
+        while ibm_db.fetch_row(stmt_connection_types):
+            row = ibm_db.fetch_assoc(stmt_connection_types)
+            connection_types_data.append(row)
+        return jsonify(connection_types_data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__=="__main__":
     # Check if the database connection is active
-    if connState:
-        # Call fetch_and_update_data only when the database connection is established
-        fetch_and_update_data()
+    # if connState:
+    #     # Call fetch_and_update_data only when the database connection is established
+    #     fetch_and_update_data()
     app.run(debug=True)
